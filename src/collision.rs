@@ -43,12 +43,18 @@ fn restitute(walls: &[Wall], marbles: &mut [Marble], contacts: &mut Contacts) {
         if let Some(disp) = disp_sphere_plane(&marbles[a].body, &walls[b].body) {
             // We can imagine we're instantaneously applying a
             // velocity change to pop the object just above the floor.
+            let n = disp / disp.magnitude();
+            let d = marbles[a].momentum.dot(n);
+            let j = (-(1.0 + 0.5) * d).max(0.0);
+
+            marbles[a].apply_impulse(j * n);
+
             marbles[a].body.c += disp;
             // It feels a little weird to be adding displacement (in
             // units) to velocity (in units/frame), but we'll roll
             // with it.  We're not exactly modeling a normal force
             // here but it's something like that.
-            marbles[a].velocity += disp;
+            // marbles[a].velocity += disp;
         }
     }
     // That can bump into each other in perfectly elastic collisions!
@@ -69,7 +75,6 @@ fn restitute(walls: &[Wall], marbles: &mut [Marble], contacts: &mut Contacts) {
         // m1 * v1i + m2 * v2i = m1 * v1f + m2 * v2f        -- Conservation of momentum
         // v1i + v1f = v2i + v2f       --- Conservation of kinetic energy
         
-        
         // v1i + v1f - v2i = v2f
         
         // m1 * v1i + m2 * v2i = m1 * v1f + m2 * (v1i + v1f - v2i)
@@ -77,10 +82,27 @@ fn restitute(walls: &[Wall], marbles: &mut [Marble], contacts: &mut Contacts) {
         // m1 * v1i + m2 * v2i = ((m1 + m2) * v1f) + m2 * v1i - m2 * v2i
         // m1 * v1i + m2 * v2i - m2 * v1i + m2 * v2i = ((m1 + m2) * v1f)  
         // (m1 * v1i + m2 * v2i - m2 * v1i + m2 * v2i) / (m1 + m2)  = v1f 
-
         // v1i + v1f - v2i = v2f
         
         if let Some(disp) = disp_sphere_sphere(&marbles[a].body, &marbles[b].body) {
+
+            // let n = disp / disp.magnitude();
+
+            // let v_relative = n.dot(marbles[a].velocity - marbles[b].velocity);
+            // let threshold = 0.5;
+            // let numerator = -((1.0 + 0.5) * (v_relative));
+            // let ra = n * marbles[a].body.r;
+            // let rb = -(n * marbles[b].body.r);
+            
+            
+            // let da = marbles[a].momentum.dot(na);
+            // let ja = (-(1.0 + 0.99) * da).max(0.0);
+            // marbles[a].apply_impulse(ja * na);
+
+            // let nb = - (disp / disp.magnitude());
+            // let db = marbles[a].momentum.dot(nb);
+            // let jb = (-(1.0 + 0.99) * db).max(0.0);
+            // marbles[b].apply_impulse(jb * nb);
             
             // Initial Values
             let v1i = marbles[a].velocity;
@@ -100,6 +122,10 @@ fn restitute(walls: &[Wall], marbles: &mut [Marble], contacts: &mut Contacts) {
             marbles[a].velocity = v1f;
             marbles[b].body.c += dispb;
             marbles[b].velocity = v2f;
+
+            marbles[a].momentum = marbles[a].velocity * marbles[a].body.m;
+            marbles[b].momentum = marbles[b].velocity * marbles[b].body.m;
+
         }
     }
 }

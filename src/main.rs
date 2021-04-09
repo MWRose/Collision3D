@@ -102,7 +102,8 @@ use geom::*;
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct Marble {
     pub body: Sphere,
-    pub velocity: Vec3,    
+    pub velocity: Vec3,
+    pub momentum: Vec3,
 }
 
 impl Marble {
@@ -113,8 +114,19 @@ impl Marble {
         }
     }
     fn update(&mut self, g: f32) {
-        self.velocity += Vec3::new(0.0, -g, 0.0) * DT;
-        self.body.c += self.velocity * DT;
+        // self.velocity += Vec3::new(0.0, -g, 0.0) * DT;
+        // self.momentum = self.velocity * self.body.m;
+        // self.apply_impulse(Vec3::new(0.0, -g, 0.0) * DT);
+        self.momentum = self.body.m * ((self.momentum / self.body.m) + Vec3::new(0.0, -g, 0.0) * DT);
+        self.body.c += self.momentum / self.body.m * DT;
+        self.velocity = self.momentum / self.body.m;
+    }
+
+    pub fn apply_impulse(&mut self, f: Vec3) {
+        self.momentum += f;
+        // self.velocity = self.momentum / self.body.m;
+        // If you want rotation, apply an instantaneous change to angular momentum here!
+        // You'll also need a point in space where the force is being applied from.
     }
 }
 
@@ -306,6 +318,7 @@ impl State {
                 Marble {
                     body: Sphere::new(Pos3::new(x, y, z), r),
                     velocity: Vec3::zero(),
+                    momentum: Vec3::zero(),
                 }
             })
             .collect::<Vec<_>>();
@@ -475,6 +488,7 @@ impl State {
                     rng.gen_range(-5.0..5.0),
                 );
                 m.velocity = Vec3::zero();
+                m.momentum = Vec3::zero();
             }
             m.update(self.g);
         }
