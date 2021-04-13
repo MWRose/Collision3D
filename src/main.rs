@@ -115,8 +115,8 @@ impl Marble {
     }
     fn update(&mut self, g: f32) {
         // self.velocity += Vec3::new(0.0, -g, 0.0) * DT;
-        // self.momentum = self.velocity * self.body.m;
-        // self.apply_impulse(Vec3::new(0.0, -g, 0.0) * DT);
+
+        // Change velocity then update momentum
         self.momentum = self.body.m * ((self.momentum / self.body.m) + Vec3::new(0.0, -g, 0.0) * DT);
         self.body.c += self.momentum / self.body.m * DT;
         self.velocity = self.momentum / self.body.m;
@@ -124,7 +124,7 @@ impl Marble {
 
     pub fn apply_impulse(&mut self, f: Vec3) {
         self.momentum += f;
-        // self.velocity = self.momentum / self.body.m;
+        self.velocity = self.momentum / self.body.m;
         // If you want rotation, apply an instantaneous change to angular momentum here!
         // You'll also need a point in space where the force is being applied from.
     }
