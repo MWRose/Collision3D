@@ -20,7 +20,7 @@ use camera_control::CameraController;
 
 mod collision;
 
-const NUM_MARBLES: usize = 50;
+const NUM_MARBLES: usize = 10;
 
 const DT: f32 = 1.0 / 60.0;
 
@@ -128,7 +128,78 @@ impl Marble {
         // If you want rotation, apply an instantaneous change to angular momentum here!
         // You'll also need a point in space where the force is being applied from.
     }
+    fn process_events(&mut self, event: &WindowEvent) -> bool {
+        match event {
+            WindowEvent::KeyboardInput {
+                input:
+                    KeyboardInput {
+                        state,
+                        virtual_keycode: Some(keycode),
+                        ..
+                    },
+                ..
+            } => {
+                let is_pressed = *state == ElementState::Pressed;
+                match keycode {
+                    VirtualKeyCode::Up => {
+                        
+                        // change velocity to go forward
+                    
+                        true
+                    }
+                    VirtualKeyCode::Down => {
+                       
+                        // change velocity to go backward
+                        true
+                    }
+                    VirtualKeyCode::Left => {
+                        //change velocity to go left
+
+                        true
+                    }
+                    VirtualKeyCode::Right => {
+                        //change velocity to right
+
+                        true
+                    }
+                    _ => false,
+                }
+            }
+            _ => false,
+        }
+    }
 }
+
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub struct Cube {
+    pub body: Box,
+    pub velocity: Vec3,
+    pub momentum: Vec3,
+}
+
+impl Cube {
+    fn to_raw(&self) -> InstanceRaw {
+        InstanceRaw {
+            model: (Mat4::from_translation(self.body.pos.to_vec()) * Mat4::from_scale(self.body.dims.x)).into(),
+        }
+    }
+    fn update(&mut self, g: f32) {
+        // self.velocity += Vec3::new(0.0, -g, 0.0) * DT;
+
+        // Change velocity then update momentum
+        // self.momentum = self.body.m * ((self.momentum / self.body.m) + Vec3::new(0.0, -g, 0.0) * DT);
+        //self.body.c += self.momentum / self.body.m * DT;
+       //self.velocity = self.momentum / self.body.m;
+    }
+
+    pub fn apply_impulse(&mut self, f: Vec3) {
+        //self.momentum += f;
+        //self.velocity = self.momentum / self.body.m;
+        // If you want rotation, apply an instantaneous change to angular momentum here!
+        // You'll also need a point in space where the force is being applied from.
+    }
+}
+
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct Wall {
@@ -200,6 +271,7 @@ struct State {
     swap_chain: wgpu::SwapChain,
     size: winit::dpi::PhysicalSize<u32>,
     render_pipeline: wgpu::RenderPipeline,
+    box_model: model::Model,
     marble_model: model::Model,
     wall_model: model::Model,
     camera: Camera,
@@ -207,10 +279,12 @@ struct State {
     uniforms: Uniforms,
     uniform_buffer: wgpu::Buffer,
     uniform_bind_group: wgpu::BindGroup,
+    boxes: Vec<Cube>,
     marbles: Vec<Marble>,
     wall: Wall,
     g: f32,
     #[allow(dead_code)]
+    boxes_buffer: wgpu::Buffer,
     marbles_buffer: wgpu::Buffer,
     walls_buffer: wgpu::Buffer,
     depth_texture: texture::Texture,
@@ -322,6 +396,14 @@ impl State {
                 }
             })
             .collect::<Vec<_>>();
+        
+        let boxes = vec![Cube{body: Box::new(Pos3::new(0.0,0.0,0.0), Vec3::new(10.0,10.0,10.0)), momentum: Vec3::zero(), velocity: Vec3::zero()}];
+        let boxes_data = boxes.iter().map(Cube::to_raw).collect::<Vec<_>>();
+        let boxes_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("Boxes Buffer"),
+            contents: bytemuck::cast_slice(&boxes_data),
+            usage: wgpu::BufferUsage::VERTEX | wgpu::BufferUsage::COPY_DST,
+        });
 
         let marbles_data = marbles.iter().map(Marble::to_raw).collect::<Vec<_>>();
         let marbles_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
@@ -373,6 +455,14 @@ impl State {
             &queue,
             &texture_bind_group_layout, // It's shaded the same as the floor
             res_dir.join("sphere.obj"),
+        )
+        .unwrap();
+
+        let box_model = model::Model::load(
+            &device,
+            &queue,
+            &texture_bind_group_layout, // It's shaded the same as the floor
+            res_dir.join("cube.obj"),
         )
         .unwrap();
 
@@ -439,6 +529,7 @@ impl State {
             swap_chain,
             size,
             render_pipeline,
+            box_model,
             marble_model,
             wall_model,
             camera,
@@ -446,9 +537,11 @@ impl State {
             uniform_buffer,
             uniform_bind_group,
             uniforms,
+            boxes,
             marbles,
             wall,
             g: 1.0,
+            boxes_buffer,
             marbles_buffer,
             walls_buffer,
             depth_texture,

@@ -26,6 +26,24 @@ pub struct Plane {
     pub d: f32,
 }
 
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub struct Box {
+    pub pos: Pos3,
+    pub dims: Vec3, // (w, l, h)
+    // pub rotation: Vec3, // (p, y, r)
+}
+
+impl Box {
+    pub fn new(pos: Pos3, dims: Vec3) -> Self{
+        Box{
+            pos,
+            dims,
+            // rotation
+        }
+    }
+
+}
+
 /// Are s1 and s2 touching?
 #[allow(dead_code)]
 pub fn touching_sphere_sphere(s1: &Sphere, s2: &Sphere) -> bool {
@@ -68,3 +86,25 @@ pub fn disp_sphere_plane(s: &Sphere, p: &Plane) -> Option<Vec3> {
         None
     }
 }
+
+// pub fn touching_sphere_box(s: &Sphere, b: &Box) -> bool {
+    
+//     // Closest point on box to circle center
+//     let x = clamp(s.c.x, b.pos.x, b.pos.x + b.dims.0);
+//     let y = clamp(s.c.y, b.pos.y, b.pos.y + b.dims.1);
+//     let z = clamp(s.c.z, b.pos.z, b.pos.z + b.dims.2);
+
+//     // Check if point is in circle
+//     let distance = Pos3(x, y, z).distance(s.c);
+//     distance < s.r;
+// }
+
+// pub fn disp_sphere_box(s: &Sphere, b: &Box) -> Option<Vec3> {
+//     // Closest point on box to circle center
+//     let x = clamp(s.c.x, b.pos.x, b.pos.x + b.dims.0);
+//     let y = clamp(s.c.y, b.pos.y, b.pos.y + b.dims.1);
+//     let z = clamp(s.c.z, b.pos.z, b.pos.z + b.dims.2);
+
+//     distance = Vec3(x, y, z) - s.c.to_vec();
+
+// }
