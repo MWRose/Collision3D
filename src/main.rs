@@ -397,7 +397,7 @@ impl State {
             })
             .collect::<Vec<_>>();
         
-        let boxes = vec![Cube{body: Box::new(Pos3::new(0.0,0.0,0.0), Vec3::new(10.0,10.0,10.0)), momentum: Vec3::zero(), velocity: Vec3::zero()}];
+        let boxes = vec![Cube{body: Box::new(Pos3::new(5.0,5.0,5.0), Vec3::new(100.0,100.0,100.0)), momentum: Vec3::zero(), velocity: Vec3::zero()}];
         let boxes_data = boxes.iter().map(Cube::to_raw).collect::<Vec<_>>();
         let boxes_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Boxes Buffer"),
@@ -605,7 +605,7 @@ impl State {
             .write_buffer(&self.marbles_buffer, 0, bytemuck::cast_slice(&marbles_data));
         self.uniforms.update_view_proj(&self.camera);
 
-        let box_data = self.boxes.iter().map(Cube::to_raw).collect::<Vec<_>>();
+        let boxes_data = self.boxes.iter().map(Cube::to_raw).collect::<Vec<_>>();
         self.queue
             .write_buffer(&self.boxes_buffer, 0, bytemuck::cast_slice(&boxes_data));
 
