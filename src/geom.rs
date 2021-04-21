@@ -87,24 +87,40 @@ pub fn disp_sphere_plane(s: &Sphere, p: &Plane) -> Option<Vec3> {
     }
 }
 
-// pub fn touching_sphere_box(s: &Sphere, b: &Box) -> bool {
+pub fn touching_sphere_box(s: &Sphere, b: &Box) -> bool {
     
-//     // Closest point on box to circle center
-//     let x = clamp(s.c.x, b.pos.x, b.pos.x + b.dims.0);
-//     let y = clamp(s.c.y, b.pos.y, b.pos.y + b.dims.1);
-//     let z = clamp(s.c.z, b.pos.z, b.pos.z + b.dims.2);
+    // Closest point on box to circle center
+    let x = clamp(s.c.x, b.pos.x, b.pos.x + b.dims.0);
+    let y = clamp(s.c.y, b.pos.y, b.pos.y + b.dims.1);
+    let z = clamp(s.c.z, b.pos.z, b.pos.z + b.dims.2);
 
-//     // Check if point is in circle
-//     let distance = Pos3(x, y, z).distance(s.c);
-//     distance < s.r;
-// }
+    // Check if point is in circle
+    let distance = Pos3(x, y, z).distance(s.c);
+    distance < s.r;
+}
 
-// pub fn disp_sphere_box(s: &Sphere, b: &Box) -> Option<Vec3> {
-//     // Closest point on box to circle center
-//     let x = clamp(s.c.x, b.pos.x, b.pos.x + b.dims.0);
-//     let y = clamp(s.c.y, b.pos.y, b.pos.y + b.dims.1);
-//     let z = clamp(s.c.z, b.pos.z, b.pos.z + b.dims.2);
+pub fn disp_sphere_box(s: &Sphere, b: &Box) -> Option<Vec3> {
+    // Closest point on box to circle center
+    let x = clamp(s.c.x, b.pos.x, b.pos.x + b.dims.0);
+    let y = clamp(s.c.y, b.pos.y, b.pos.y + b.dims.1);
+    let z = clamp(s.c.z, b.pos.z, b.pos.z + b.dims.2);
 
-//     distance = Vec3(x, y, z) - s.c.to_vec();
+    distance = Vec3::new(x, y, z) - s.c.to_vec();
 
-// }
+    if distance.0 == 0 {
+        distance.0 = r - distance.0;
+        return Some(distance);
+    } else if distance.1 == 0{
+        distance.1 = r - distance.0;
+        return  Some(distance);
+    } else if distance.2 == 0 {
+        distance.2 = r - distance.2;
+        return Some(distance);
+    } else {
+        println!("Error in calculating sphere box disp");
+    }
+
+    None
+
+
+}

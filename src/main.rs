@@ -604,6 +604,12 @@ impl State {
         self.queue
             .write_buffer(&self.marbles_buffer, 0, bytemuck::cast_slice(&marbles_data));
         self.uniforms.update_view_proj(&self.camera);
+
+        let box_data = self.boxes.iter().map(Cube::to_raw).collect::<Vec<_>>();
+        self.queue
+            .write_buffer(&self.boxes_buffer, 0, bytemuck::cast_slice(&boxes_data));
+
+
         self.queue.write_buffer(
             &self.uniform_buffer,
             0,
@@ -653,6 +659,7 @@ impl State {
             );
             render_pass.set_vertex_buffer(1, self.walls_buffer.slice(..));
             render_pass.draw_model_instanced(&self.wall_model, 0..1, &self.uniform_bind_group);
+            render_pass.draw_model_instanced(&self.box_model,0..self.boxes.len() as u32, &self.uniform_bind_group);
         }
 
         self.queue.submit(iter::once(encoder.finish()));
